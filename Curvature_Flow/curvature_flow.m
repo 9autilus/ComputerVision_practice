@@ -1,130 +1,89 @@
-function Prob1_00()
+function Prob1_02()
     close all; clear all;
     
-    xlimit = 20; 
-    ylimit = 20;
+    %User configurable parameters
+    nCurves     = 3;    %Number of different curves to be tested
+    nPoints     = 2000; %Number of points in a curve boundary
+    nTimeSteps  = 3;    %Determines how many plots will be displayed per curve
     
-    nCurves     = 1;
-    nPoints     = 200;
-    nTimeSteps  = 3;
+    %Developer configurable parameters
+    gapTimeStep = 100;  %Num iterations between successive curve-plot
     
-    gapTimeStep = 5;
+    %Compute number of iterations based on configured parameters
+    nItr        = gapTimeStep * nTimeSteps;
     
-    nItr        = gapTimeStep * nTimeSteps; %Total number of iterations
-    
-    for curveID=1:nCurves      
-        [x, y] = gen_rand_curve(nPoints); 
-        x = [x(end-1) x x(2)];
-        y = [y(end-1) y y(2)];
+    %Loop over all curves
+    for curveID=1:nCurves
+        %Generate a random curve
+        [x, y, rFine, thetaFine] = get_rand_curve(nPoints); 
 
-        %x = smooth(x);
-        %y = smooth(y);
+        [x y]   = get_updated_curve(rFine, thetaFine);
         
-        %disp([x y]);    
-        
+        %Draw initial curve
         figure, 
         pltID = 1;
-        axis([-xlimit xlimit -ylimit ylimit]);
         subplot(2, 2, pltID);
         plot(x, y);
-        title(pltID);
-        pltID = pltID + 1;
-        %plot(x(3:end-2), y(3:end-2));
+        title('Initial Curve');
         
+        %Loop over iterations for a curve
         for itrID=1:nItr
-            %fprintf('Iteration: %d\n', itrID);
-            %Compute the curvature
+            %Compute curvature K
             dx      = gradient(x);
             ddx     = gradient(dx);
             dy      = gradient(y);
             ddy     = gradient(dy);
-            ds      = sqrt(dx.*dx + dy.*dy);
-            num     = dx .* ddy - ddx .* dy;
-            denom   = dx .* dx + dy .* dy;
-            denom   = sqrt(denom);
-            denom   = denom .* denom .* denom;
-            K            = num ./ denom;
-            %K(denom < 0) = NaN;
-            %K(isnan(K))  = 0;
+            ds      = sqrt(dx.^2 + dy.^2);
+            K       = (dx .* ddy - ddx .* dy)./power((dx.^2 + dy.^2), 1.5);
 
+            %Compute Normal to the curve
             N       = [-dy./ds, dx./ds];
             
-            %for i=1:size(N,1)
-            %    N(i, :) = N(i, :)/sqrt(N(i,1)*N(i,1) + N(i,2)*N(i,2));
-            %end
-            
-            K= abs(K);
-            
-            %delta   = -[K .* N(:, 1), K .* N(:, 2)];%original
-            delta   = [K .* N(:, 2), K .* N(:, 1)];
-            delta(isnan(delta)) = 0;
+            %Compute the amount by which coordinates has to change in next iteration
+            delta   = -[K .* N(:, 2), K .* N(:, 1)];
 
-            x = x + delta(:, 1);
-            y = y + delta(:, 2);
+            % Update coordinates
+            x       = (x - delta(:, 1));
+            y       = (y - delta(:, 2));            
+            rFine   = sqrt(x.^2 + y.^2);
+            [x y]   = get_updated_curve(rFine, thetaFine);
             
             %Display each curve nTimeSteps times on screen
             if (0 == mod(itrID, gapTimeStep))
-                subplot(2, 2, pltID), plot(x(2:end-1), y(2:end-1));
-                title(pltID);
-                axis([-xlimit xlimit -ylimit ylimit])
+                subplot(2, 2, pltID + 1), plot(x, y);
+                title(strcat('Time Step: ', int2str(pltID)));
                 pltID = pltID + 1;
-                %fprintf('Size K: (%d, %d), Size N: (%d, %d)\n', size(K,1), size(K,2), size(N,1), size(N,2));
             end            
-        end
-        
-        
-        %{
-        % In each iteration find the normal and curvature at each point and also 
-        % disp as Curv*Normal
-        itr = 300;
-        for i = 1:itr
-            dx = gradient(x);
-            ddx = gradient(dx);
-            dy = gradient(y);
-            ddy = gradient(dy);
-
-            temp = dx .* ddy - ddx .* dy;
-            ds = sqrt(dx.*dx + dy.*dy);
-
-            K = temp./(ds.*ds.*ds);
-            K(isnan(K)) = 0;
-
-            Nor = [-dy./ds,dx./ds];
-            Disp = -[K.*Nor(:,1),K.*Nor(:,2)];
-            Disp(isnan(Disp)) = 0;
-
-            %x = smooth(x + Disp(:,1));
-            %y = smooth(y + Disp(:,2));
-            
-            x = x + Disp(:,1);
-            y = y + Disp(:,2);
-
-            %Plot the curve at 3 time steps of 100 itr.
-            if(i == 100 || i == 200 || i == 300)
-                figure,
-                plot(y,x,'r')
-                %axis([-50 300 -50 300])
-            end   
-        end
-        %}
-        
+        end      
     end
 end %Main function
 
 
 
+%{
+To avoid generating a curve whose boundary has large fluctuations, we first
+create a curve with small number of boundary points (Coarse) and then interpolate
+the points within the boundary (Fine) with the help of a cubic spline.
+%}
+function [x, y, rFine, thetaFine] = get_rand_curve(N)
+    numCoarsePts  = 20; %Chosen by hit and trial
+    thetaCoarse   = linspace(0, 2 * pi, numCoarsePts);
+    thetaFine     = linspace(0, 2 * pi, N);
 
-function [x, y] = gen_rand_curve(N)
-    n           = 15;
-    t           = linspace(0, 2 * pi, n);
-    tt          = linspace(0, 2 * pi, N);
+    % 1 is added to avoid self-intersecting curves.
+    % 5 is just for a bigger scale. Chosen arbitrarily.
+    rCoarse     = 5 * (1 + rand(size(thetaCoarse)));
+    rCoarse(end)= rCoarse(1);
+    rFine       = interp1(thetaCoarse, rCoarse, thetaFine, 'spline');
+    
+    x           = rFine .* cos(thetaFine);
+    y           = rFine .* sin(thetaFine);
+end
 
-    r           = 1 + 5 * rand(size(t));
-    r(end)      = r(1);
-    rr          = spline(t, [0 r 0], tt);
-    x           = rr .* cos(tt);
-    y           = rr .* sin(tt);
-
-    %% display
-    %figure, plot(x,y);
+%{
+Get updated curve from rFine and thetaFine values
+%}
+function [x, y] = get_updated_curve(rFine, thetaFine)
+    x           = rFine .* cos(thetaFine);
+    y           = rFine .* sin(thetaFine);
 end
