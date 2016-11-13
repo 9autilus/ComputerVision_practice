@@ -1,16 +1,17 @@
-function Prob1_03()
+function Prob1_04()
     close all; clear all;
     
     %User configurable parameters
     nCurves     = 3;    %Number of different curves to be tested
     nPoints     = 2000; %Number of points in a curve boundary
-    nTimeSteps  = 3;    %Determines how many plots will be displayed per curve
+    nPlots      = 3;    %Determines how many plots will be displayed per curve
+    timeStep    = 1;
     
     %Developer configurable parameters
     gapPlot     = 100;  %Num iterations between successive curve-plot
     
     %Compute number of iterations based on configured parameters
-    nItr        = gapPlot * nTimeSteps;
+    nItr        = gapPlot * nPlots;
     
     %Loop over all curves
     for curveID=1:nCurves
@@ -40,23 +41,23 @@ function Prob1_03()
             delta   = -[K .* N(:, 2), K .* N(:, 1)];
 
             % Update coordinates
-            x       = (x - delta(:, 1));
-            y       = (y - delta(:, 2));            
+            x       = (x - timeStep * delta(:, 1));
+            y       = (y - timeStep * delta(:, 2));            
             rFine   = sqrt(x.^2 + y.^2);
             [x y]   = get_updated_curve(rFine, thetaFine);
             
-            %Display each curve nTimeSteps times on screen
+            %Display each curve nPlots times on screen
             if (0 == mod(itrID, gapPlot))
                 plot(x, y);
                 pltID = pltID + 1;
             end            
         end
         
-        if(nTimeSteps == 1)
+        if(nPlots == 1)
             legend('Init', '1');
-        elseif(nTimeSteps == 2)
+        elseif(nPlots == 2)
             legend('Init', '1', '2');
-        elseif(nTimeSteps == 3)
+        elseif(nPlots == 3)
             legend('Init', '1', '2', '3');
         end
 
