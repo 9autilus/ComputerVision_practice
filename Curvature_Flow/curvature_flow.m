@@ -1,4 +1,4 @@
-function Prob1_02()
+function Prob1_03()
     close all; clear all;
     
     %User configurable parameters
@@ -7,24 +7,21 @@ function Prob1_02()
     nTimeSteps  = 3;    %Determines how many plots will be displayed per curve
     
     %Developer configurable parameters
-    gapTimeStep = 100;  %Num iterations between successive curve-plot
+    gapPlot     = 100;  %Num iterations between successive curve-plot
     
     %Compute number of iterations based on configured parameters
-    nItr        = gapTimeStep * nTimeSteps;
+    nItr        = gapPlot * nTimeSteps;
     
     %Loop over all curves
     for curveID=1:nCurves
         %Generate a random curve
         [x, y, rFine, thetaFine] = get_rand_curve(nPoints); 
 
-        [x y]   = get_updated_curve(rFine, thetaFine);
-        
         %Draw initial curve
         figure, 
         pltID = 1;
-        subplot(2, 2, pltID);
         plot(x, y);
-        title('Initial Curve');
+        hold on;
         
         %Loop over iterations for a curve
         for itrID=1:nItr
@@ -49,16 +46,23 @@ function Prob1_02()
             [x y]   = get_updated_curve(rFine, thetaFine);
             
             %Display each curve nTimeSteps times on screen
-            if (0 == mod(itrID, gapTimeStep))
-                subplot(2, 2, pltID + 1), plot(x, y);
-                title(strcat('Time Step: ', int2str(pltID)));
+            if (0 == mod(itrID, gapPlot))
+                plot(x, y);
                 pltID = pltID + 1;
             end            
-        end      
+        end
+        
+        if(nTimeSteps == 1)
+            legend('Init', '1');
+        elseif(nTimeSteps == 2)
+            legend('Init', '1', '2');
+        elseif(nTimeSteps == 3)
+            legend('Init', '1', '2', '3');
+        end
+
+        hold off;
     end
 end %Main function
-
-
 
 %{
 To avoid generating a curve whose boundary has large fluctuations, we first
