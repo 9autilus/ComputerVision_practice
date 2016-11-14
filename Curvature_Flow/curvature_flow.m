@@ -1,14 +1,14 @@
-function curvature_flow()
+function main()
     close all; clear all;
     
     %User configurable parameters
     nCurves     = 1;    %Number of different curves to be tested
-    nPoints     = 200; %Number of points in a curve boundary
+    nPoints     = 2000; %Number of points in a curve boundary
     nPlots      = 2;    %Determines how many plots will be displayed per curve
-    timeStep    = 1;
+    timeStep    = 3;
     
     %Developer configurable parameters
-    gapPlot     = 1000;  %Num iterations between successive curve-plot
+    gapPlot     = 50;  %Num iterations between successive curve-plot
     
     %Compute number of iterations based on configured parameters
     nItr        = gapPlot * nPlots;
@@ -17,15 +17,30 @@ function curvature_flow()
     for curveID=1:nCurves
         %Generate a random curve
         [x, y, thetaFine] = get_rand_curve(nPoints); 
+        x = [x(end - 1); x ; x(2)];
+        y = [y(end - 1); y ; y(2)];
+        thetaFine = [thetaFine(end - 1); thetaFine ; thetaFine(2)];
     
         %Draw initial curve
         figure, 
         pltID = 1;
-        plot(x, y, 'blue');
+        %plot(x, y, 'blue');
+        plot(x(2:end-1), y(2:end-1), 'blue');
         hold on;
         
         %Loop over iterations for a curve
-        for itrID=1:nItr
+        %for itrID=1:nItr
+        itrID = 1; 
+        while(1)
+            itrID       = itrID + 1;
+            x(end)      = x(3);
+            x(end-1)    = x(2);
+            x(1)        = x(end-2);
+            
+            y(end)      = y(3);
+            y(end-1)    = y(2);
+            y(1)        = y(end-2);            
+            
             %Compute curvature K
             dx      = gradient(x);
             ddx     = gradient(dx);
@@ -42,8 +57,8 @@ function curvature_flow()
             [x, y]  = get_updated_curve(rFine, thetaFine);
             
             %Display each curve nPlots times on screen
-            if (1)%0 == mod(itrID, gapPlot))
-                plot(x, y, 'red');
+            if (0 == mod(itrID, gapPlot))
+                plot(x(2:end-1,1), y(2:end-1, 1), 'red');
                 pltID = pltID + 1;
                 pause(0.1);
             end            
