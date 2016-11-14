@@ -2,16 +2,27 @@ function main()
     close all; clear all;
     
     %User configurable parameters
-    nCurves     = 1;    %Number of different curves to be tested
+    animated    = 1;    %A true value cause the circle to shrink to point
     nPoints     = 2000; %Number of points in a curve boundary
-    nPlots      = 2;    %Determines how many plots will be displayed per curve
-    timeStep    = 3;
     
     %Developer configurable parameters
-    gapPlot     = 50;  %Num iterations between successive curve-plot
+    if(animated)
+        gapPlot     = 50;   %Num iterations between successive curve-plot
+        nCurves     = 1;    %Use a single curve
+        timeStep    = 3;
+        linewidth   = 1;
+    else
+        gapPlot     = 5000; %Num iterations between successive curve-plot
+        nCurves     = 3;    %Number of different curves to be tested
+        nPlots      = 3;    %Determines how many plots will be displayed per curve
+        timeStep    = 2;
+        linewidth   = 1.5;  %Width of line in plot
+    end
     
     %Compute number of iterations based on configured parameters
-    nItr        = gapPlot * nPlots;
+    if(~animated)
+        nItr        = gapPlot * nPlots;
+    end
     
     %Loop over all curves
     for curveID=1:nCurves
@@ -25,14 +36,17 @@ function main()
         figure, 
         pltID = 1;
         %plot(x, y, 'blue');
-        plot(x(2:end-1), y(2:end-1), 'blue');
+        plot(x(2:end-1), y(2:end-1), 'blue', 'LineWidth',linewidth);
         hold on;
         
         %Loop over iterations for a curve
-        %for itrID=1:nItr
-        itrID = 1; 
-        while(1)
+        itrID   = 1; 
+        halt    = 0;
+        while(~halt)
             itrID       = itrID + 1;
+            
+            % To make the curve appear circular we create a cycle by making 
+            % first and last two points same
             x(end)      = x(3);
             x(end-1)    = x(2);
             x(1)        = x(end-2);
@@ -58,21 +72,27 @@ function main()
             
             %Display each curve nPlots times on screen
             if (0 == mod(itrID, gapPlot))
-                plot(x(2:end-1,1), y(2:end-1, 1), 'red');
+                plot(x(2:end-1,1), y(2:end-1, 1), 'red','LineWidth',linewidth);
                 pltID = pltID + 1;
                 pause(0.1);
-            end            
+            end
+
+            if(~animated)
+                halt = (itrID >= nItr);
+            end
         end
         
-%         if(nPlots == 1)
-%             legend('Init', '1');
-%         elseif(nPlots == 2)
-%             legend('Init', '1', '2');
-%         elseif(nPlots == 3)
-%             legend('Init', '1', '2', '3');
-%        end
+        if(~animated)
+             if(nPlots == 1)
+                 legend('Init', '1');
+             elseif(nPlots == 2)
+                 legend('Init', '1', '2');
+             elseif(nPlots == 3)
+                 legend('Init', '1', '2', '3');
+            end
+        end
 
-        hold off;
+        hold off; %Hold off for possible next curve
     end
 end %Main function
 
