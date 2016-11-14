@@ -1,14 +1,14 @@
-function Prob1_04()
+function curvature_flow()
     close all; clear all;
     
     %User configurable parameters
-    nCurves     = 3;    %Number of different curves to be tested
-    nPoints     = 2000; %Number of points in a curve boundary
-    nPlots      = 3;    %Determines how many plots will be displayed per curve
+    nCurves     = 1;    %Number of different curves to be tested
+    nPoints     = 200; %Number of points in a curve boundary
+    nPlots      = 2;    %Determines how many plots will be displayed per curve
     timeStep    = 1;
     
     %Developer configurable parameters
-    gapPlot     = 100;  %Num iterations between successive curve-plot
+    gapPlot     = 1;  %Num iterations between successive curve-plot
     
     %Compute number of iterations based on configured parameters
     nItr        = gapPlot * nPlots;
@@ -16,7 +16,7 @@ function Prob1_04()
     %Loop over all curves
     for curveID=1:nCurves
         %Generate a random curve
-        [x, y, rFine, thetaFine] = get_rand_curve(nPoints); 
+        [x, y, thetaFine] = get_rand_curve(nPoints); 
 
         %Draw initial curve
         figure, 
@@ -32,19 +32,22 @@ function Prob1_04()
             dy      = gradient(y);
             ddy     = gradient(dy);
             ds      = sqrt(dx.^2 + dy.^2);
-            K       = (dx .* ddy - ddx .* dy)./power((dx.^2 + dy.^2), 1.5);
-
+            %K       = (ds .* (dx .* ddy - ddx .* dy))./power(ds, 3);
+            K       = (dx .* ddy - ddx .* dy)./power(ds, 3);
+            K = abs(K);
+            
             %Compute Normal to the curve
-            N       = [-dy./ds, dx./ds];
+            N       = [dy./ds, -dx./ds];
+            %N(N < 0)= 0;
             
             %Compute the amount by which coordinates has to change in next iteration
-            delta   = -[K .* N(:, 2), K .* N(:, 1)];
+            delta   = K .* N;           
 
             % Update coordinates
-            x       = (x - timeStep * delta(:, 1));
-            y       = (y - timeStep * delta(:, 2));            
+            x       = (x + timeStep * delta(:, 1));
+            y       = (y + timeStep * delta(:, 2));            
             rFine   = sqrt(x.^2 + y.^2);
-            [x y]   = get_updated_curve(rFine, thetaFine);
+            [x, y]  = get_updated_curve(rFine, thetaFine);
             
             %Display each curve nPlots times on screen
             if (0 == mod(itrID, gapPlot))
@@ -70,7 +73,7 @@ To avoid generating a curve whose boundary has large fluctuations, we first
 create a curve with small number of boundary points (Coarse) and then interpolate
 the points within the boundary (Fine) with the help of a cubic spline.
 %}
-function [x, y, rFine, thetaFine] = get_rand_curve(N)
+function [x, y, thetaFine] = get_rand_curve(N)
     numCoarsePts  = 20; %Chosen by hit and trial
     thetaCoarse   = linspace(0, 2 * pi, numCoarsePts);
     thetaFine     = linspace(0, 2 * pi, N);
@@ -83,6 +86,11 @@ function [x, y, rFine, thetaFine] = get_rand_curve(N)
     
     x           = rFine .* cos(thetaFine);
     y           = rFine .* sin(thetaFine);
+    
+    %Convert to column vectors
+    x           = x(:); 
+    y           = y(:);
+    thetaFine   = thetaFine(:);
 end
 
 %{
