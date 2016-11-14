@@ -8,7 +8,7 @@ function curvature_flow()
     timeStep    = 1;
     
     %Developer configurable parameters
-    gapPlot     = 1;  %Num iterations between successive curve-plot
+    gapPlot     = 1000;  %Num iterations between successive curve-plot
     
     %Compute number of iterations based on configured parameters
     nItr        = gapPlot * nPlots;
@@ -17,11 +17,11 @@ function curvature_flow()
     for curveID=1:nCurves
         %Generate a random curve
         [x, y, thetaFine] = get_rand_curve(nPoints); 
-
+    
         %Draw initial curve
         figure, 
         pltID = 1;
-        plot(x, y);
+        plot(x, y, 'blue');
         hold on;
         
         %Loop over iterations for a curve
@@ -32,37 +32,30 @@ function curvature_flow()
             dy      = gradient(y);
             ddy     = gradient(dy);
             ds      = sqrt(dx.^2 + dy.^2);
-            %K       = (ds .* (dx .* ddy - ddx .* dy))./power(ds, 3);
-            K       = (dx .* ddy - ddx .* dy)./power(ds, 3);
-            K = abs(K);
+            K       = (ds .* (dx .* ddy - ddx .* dy))./power(ds, 3);
+            K(K<0)  = 0;
             
-            %Compute Normal to the curve
-            N       = [dy./ds, -dx./ds];
-            %N(N < 0)= 0;
-            
-            %Compute the amount by which coordinates has to change in next iteration
-            delta   = K .* N;           
-
             % Update coordinates
-            x       = (x + timeStep * delta(:, 1));
-            y       = (y + timeStep * delta(:, 2));            
+            x       = (x - timeStep * K .* (dy));
+            y       = (y - timeStep * K .* (-dx));            
             rFine   = sqrt(x.^2 + y.^2);
             [x, y]  = get_updated_curve(rFine, thetaFine);
             
             %Display each curve nPlots times on screen
-            if (0 == mod(itrID, gapPlot))
-                plot(x, y);
+            if (1)%0 == mod(itrID, gapPlot))
+                plot(x, y, 'red');
                 pltID = pltID + 1;
+                pause(0.1);
             end            
         end
         
-        if(nPlots == 1)
-            legend('Init', '1');
-        elseif(nPlots == 2)
-            legend('Init', '1', '2');
-        elseif(nPlots == 3)
-            legend('Init', '1', '2', '3');
-        end
+%         if(nPlots == 1)
+%             legend('Init', '1');
+%         elseif(nPlots == 2)
+%             legend('Init', '1', '2');
+%         elseif(nPlots == 3)
+%             legend('Init', '1', '2', '3');
+%        end
 
         hold off;
     end
