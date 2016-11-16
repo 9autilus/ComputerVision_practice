@@ -28,6 +28,9 @@ function main()
     for curveID=1:nCurves
         %Generate a random curve
         [x, y, thetaFine] = get_rand_curve(nPoints); 
+        
+        % To make the curve appear circular we create a cycle by making 
+        % first-two and last-two points same        
         x = [x(end - 1); x ; x(2)];
         y = [y(end - 1); y ; y(2)];
         thetaFine = [thetaFine(end - 1); thetaFine ; thetaFine(2)];
@@ -46,7 +49,7 @@ function main()
             itrID       = itrID + 1;
             
             % To make the curve appear circular we create a cycle by making 
-            % first and last two points same
+            % first-two and last-two points same
             x(end)      = x(3);
             x(end-1)    = x(2);
             x(1)        = x(end-2);
@@ -61,12 +64,12 @@ function main()
             dy      = gradient(y);
             ddy     = gradient(dy);
             ds      = sqrt(dx.^2 + dy.^2);
-            K       = (ds .* (dx .* ddy - ddx .* dy))./power(ds, 3);
+            K       = ((dx .* ddy - ddx .* dy))./power(ds, 3);
             K(K<0)  = 0;
             
             % Update coordinates
-            x       = (x - timeStep * K .* (dy));
-            y       = (y - timeStep * K .* (-dx));            
+            x       = (x - timeStep * K .* (dy.*ds));
+            y       = (y - timeStep * K .* (-dx.*ds));            
             rFine   = sqrt(x.^2 + y.^2);
             [x, y]  = get_updated_curve(rFine, thetaFine);
             
