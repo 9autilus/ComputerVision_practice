@@ -123,6 +123,8 @@ function [u, v] = get_grad_vector_field(img)
     smoothImg   = imgaussfilt(img, gaussSigma);
     
     [fx, fy]    = gradient(smoothImg);
+    %u           = fx;
+    %v           = fy;
     b           = fx.^2 + fy.^2;
     c1          = b .* fx;
     c2          = b .* fy;
@@ -130,12 +132,8 @@ function [u, v] = get_grad_vector_field(img)
     r = mu * time_step;
     
     for itrID = 1:maxItr
-        u = (1 - time_step * b) .* u ...
-            + r * ([u(2:end,:); zeros(1,wd)] + [zeros(1,wd); u(1:end-1, :)] + [u(:, 2:end), zeros(ht,1)] + [zeros(ht,1), u(:, 1:end-1)] - 4 * u) ...
-            + time_step * c1;
-        v = (1 - time_step * b) .* v ...
-            + r * ([v(2:end,:); zeros(1,wd)] + [zeros(1,wd); v(1:end-1, :)] + [v(:, 2:end), zeros(ht,1)] + [zeros(ht,1), v(:, 1:end-1)] - 4 * v) ...
-            + time_step * c2;
+        u= time_step * ((1-b).*u + mu*del2(u) + b.* fx);
+        v= time_step * ((1-b).*v + mu*del2(v) + b.* fy);
     end
     
     figure,
