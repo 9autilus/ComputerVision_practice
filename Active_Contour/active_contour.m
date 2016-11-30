@@ -24,10 +24,7 @@ function main()
     x(end) = x(1); y(end) = y(1); %Make curve closed
     
     % Display input image and starting points of curve
-    %figure, imshow(imgColor), hold on, plot(x, y, 'red', 'LineWidth',linewidth), hold off;
-    [u, v] = get_grad_vector_field(img);
- 
-    return;
+    figure, imshow(imgColor), hold on, plot(x, y, 'red', 'LineWidth',linewidth), hold off;
     
     %Get the gradient term of Energy Equation
     smoothImg   = imgaussfilt(img, gaussSigma);
@@ -106,45 +103,4 @@ function D4 = get_D4(nPoints)
     D4(nPoints - 1, 1)  = 1;
     D4(2, nPoints)      = 1;
     D4(nPoints, 2)      = 1;
-end
-
-function [u, v] = get_grad_vector_field(img)
-    time_step = .1;
-    mu = 1;
-    maxItr = 100;
-    gaussSigma  = 1;    %std_dev for guassian smoothing of image for external forces
-    
-    ht = size(img, 1);
-    wd = size(img, 2);
-    
-    u = zeros(ht, wd);
-    v = zeros(ht, wd);
-    
-    smoothImg   = imgaussfilt(img, gaussSigma);
-    
-    [fx, fy]    = gradient(smoothImg);
-    %u           = fx;
-    %v           = fy;
-    b           = fx.^2 + fy.^2;
-    c1          = b .* fx;
-    c2          = b .* fy;
-
-    r = mu * time_step;
-    
-    for itrID = 1:maxItr
-        u= time_step * ((1-b).*u + mu*del2(u) + b.* fx);
-        v= time_step * ((1-b).*v + mu*del2(v) + b.* fy);
-    end
-    
-    figure,
-    subplot(1,2,1), imshow(smoothImg);
-    hold on;
-    quiver(fx,fy);
-    hold off;
-    
-    subplot(1,2,2), imshow(smoothImg);
-    hold on;
-    quiver(u,v);
-    hold off;
-    
 end
