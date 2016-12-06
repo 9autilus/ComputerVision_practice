@@ -7,10 +7,10 @@ Below is the plot of application of this snake on Pacman image. The 3 stages of 
 
 Snake with alpha=0.5, beta=1.0, delta=5000
 
-![alt tag](results/active_contour_1.jpg)
+![alt tag](results/active_contour_1.JPG)
 
 Despite the smoothing, the snake only works if I initialize the curve close to the object boundaries, otherwise the external energy component becomes zero and is unable to pull the curve towards boundary. Also the final curve is unable to reach the sharp corners in the Pacman image. This shortcoming can be overcome by adjusting the weight factors based on experimentations. Below is plot of running on same image with different weight parameters.
 
 Snake with alpha=0.1, beta=0.01, delta=5000
 
-![alt tag](results/active_contour_2.jpg)
+![alt tag](results/active_contour_2.JPG)
