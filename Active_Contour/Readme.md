@@ -1,4 +1,4 @@
-See Derivation.pdf for more details.
+See `Derivation.pdf` for more details.
 
 *Smoothening:* In order to have a gradient field which is non-zero away from the object boundaries, I used Gaussian smoothing of image. This helps in cases when image contains noise or when the initial snake is not close to the object boundaries.
 
